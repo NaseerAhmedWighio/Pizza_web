@@ -45,3 +45,19 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 }
+
+model Settings {
+  id            String  @id @default("site-settings")
+  siteName      String  @default("De Pizza Town")
+  tagline       String  @default("The taste of the century at your life")
+  phone1        String  @default("+92 306 0022771")
+  phone2        String? @default("+92 333 1399804")
+  address       String  @default("Block-B, North Nazimabad Town, Karachi, Pakistan")
+  locationUrl   String  @default("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14470.97059885408!2d67.0426!3d24.9458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33f114c000001%3A0xc3c5d6f83424683c!2sNorth%20Nazimabad%20Town!5e0!3m2!1sen!2spk!4v1714150000000!5m2!1sen!2spk")
+  shopTiming    String  @default("3 PM – 3 AM")
+  whatsapp      String  @default("923060022771")
+  facebook      String  @default("https://facebook.com/depizzatown")
+  instagram     String  @default("https://instagram.com/depizzatown9")
+  tiktok        String  @default("https://tiktok.com/@depizzatown9")
+  description   String  @default("Authentic taste, Karachi soul. Serving high-quality pizzas with premium ingredients since 2016.")
+}

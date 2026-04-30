@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { formatCurrency } from '../lib/utils';
@@ -17,8 +17,13 @@ export function CheckoutPage() {
     notes: ''
   });
 
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate('/menu');
+    }
+  }, [items.length, navigate]);
+
   if (items.length === 0) {
-    navigate('/menu');
     return null;
   }
 

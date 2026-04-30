@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { prisma } from './src/lib/prisma.ts';
@@ -118,10 +117,9 @@ async function startServer() {
     }
   });
 
-  // Simple Admin Login (Mock for demo purposes, would use JWT/Sessions in production)
+  // Simple Admin Login
   app.post('/api/admin/login', async (req, res) => {
     const { email, password } = req.body;
-    // For this app, we'll check against a hardcoded admin or first user
     if (email === 'admin@depizzatown.com' && password === 'admin123') {
       res.json({ token: 'mock-jwt-token', user: { email } });
     } else {
@@ -129,14 +127,52 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
+  // Settings: Get
+  app.get('/api/settings', async (req, res) => {
+    try {
+      const settings = await prisma.settings.findUnique({
+        where: { id: 'site-settings' }
+      });
+      if (!settings) {
+        return res.status(404).json({ error: 'Settings not found' });
+      }
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  // Settings: Get/Update (Admin)
+  app.get('/api/admin/settings', async (req, res) => {
+    try {
+      const settings = await prisma.settings.findUnique({
+        where: { id: 'site-settings' }
+      });
+      if (!settings) {
+        return res.status(404).json({ error: 'Settings not found' });
+      }
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  app.put('/api/admin/settings', async (req, res) => {
+    try {
+      const data = req.body;
+      const settings = await prisma.settings.upsert({
+        where: { id: 'site-settings' },
+        update: data,
+        create: { id: 'site-settings', ...data }
+      });
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update settings' });
+    }
+  });
+
+  // Serve static files in production
+  if (process.env.NODE_ENV === "production") {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
@@ -146,7 +182,7 @@ async function startServer() {
 
   const PORT = 3000;
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`API Server running at http://localhost:${PORT}`);
   });
 }
 

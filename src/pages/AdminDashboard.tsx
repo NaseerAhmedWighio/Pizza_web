@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../lib/utils';
-import { Package, Plus, Trash2, Edit, CheckCircle, Clock, Trash } from 'lucide-react';
+import { CheckCircle, Settings, Plus, Edit, Trash } from 'lucide-react';
 
 export function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [pizzas, setPizzas] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu'>('orders');
+  const [settings, setSettings] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'settings'>('orders');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -20,6 +21,21 @@ export function AdminDashboard() {
     category: 'Best Pizza'
   });
 
+  const [settingsForm, setSettingsForm] = useState({
+    siteName: '',
+    tagline: '',
+    phone1: '',
+    phone2: '',
+    address: '',
+    locationUrl: '',
+    shopTiming: '',
+    whatsapp: '',
+    facebook: '',
+    instagram: '',
+    tiktok: '',
+    description: ''
+  });
+
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
     if (!token) {
@@ -28,6 +44,7 @@ export function AdminDashboard() {
     }
 
     fetchData();
+    fetchSettings();
   }, []);
 
   const fetchData = async () => {
@@ -43,6 +60,46 @@ export function AdminDashboard() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings');
+      const data = await res.json();
+      setSettings(data);
+      setSettingsForm({
+        siteName: data.siteName || '',
+        tagline: data.tagline || '',
+        phone1: data.phone1 || '',
+        phone2: data.phone2 || '',
+        address: data.address || '',
+        locationUrl: data.locationUrl || '',
+        shopTiming: data.shopTiming || '',
+        whatsapp: data.whatsapp || '',
+        facebook: data.facebook || '',
+        instagram: data.instagram || '',
+        tiktok: data.tiktok || '',
+        description: data.description || ''
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settingsForm)
+      });
+      if (res.ok) {
+        alert('Settings updated successfully!');
+        fetchSettings();
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -126,25 +183,32 @@ export function AdminDashboard() {
             <h1 className="text-4xl font-black uppercase tracking-tighter">Management Console</h1>
             <p className="text-neutral-500">Live system overview for De Pizza Town</p>
           </div>
-          <div className="flex bg-white p-1 rounded-xl border border-neutral-200">
-            <button 
-              onClick={() => setActiveTab('orders')}
-              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'orders' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-neutral-500 hover:text-neutral-900'}`}
-            >
-              Orders ({orders.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('menu')}
-              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-neutral-500 hover:text-neutral-900'}`}
-            >
-              Menu ({pizzas.length})
-            </button>
-          </div>
+           <div className="flex bg-white p-1 rounded-xl border border-neutral-200">
+             <button
+               onClick={() => setActiveTab('orders')}
+               className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'orders' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-neutral-500 hover:text-neutral-900'}`}
+             >
+               Orders ({orders.length})
+             </button>
+             <button
+               onClick={() => setActiveTab('menu')}
+               className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-neutral-500 hover:text-neutral-900'}`}
+             >
+               Menu ({pizzas.length})
+             </button>
+             <button
+               onClick={() => setActiveTab('settings')}
+               className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-neutral-500 hover:text-neutral-900'}`}
+             >
+               <Settings className="w-4 h-4 inline mr-1" />
+               Settings
+             </button>
+           </div>
         </div>
-        
+
         {activeTab === 'menu' && (
           <div className="flex justify-end mb-6">
-            <button 
+            <button
               onClick={() => openModal()}
               className="bg-neutral-900 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-orange-600 transition-colors"
             >
@@ -154,7 +218,7 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'orders' ? (
+        {activeTab === 'orders' && (
           <div className="grid grid-cols-1 gap-6">
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-3xl border border-neutral-100 p-8 shadow-sm hover:shadow-md transition-shadow">
@@ -205,7 +269,9 @@ export function AdminDashboard() {
             ))}
             {orders.length === 0 && <div className="text-center py-20 text-neutral-400 font-bold uppercase tracking-widest">No orders yet</div>}
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'menu' && (
           <div className="bg-white rounded-3xl border border-neutral-100 overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead className="bg-neutral-50 border-b border-neutral-100">
@@ -234,13 +300,13 @@ export function AdminDashboard() {
                     <td className="p-6 font-bold">{formatCurrency(pizza.price)}</td>
                     <td className="p-6 text-right">
                       <div className="flex justify-end gap-2">
-                        <button 
+                        <button
                           onClick={() => openModal(pizza)}
                           className="p-2 text-neutral-300 hover:text-blue-600 transition-colors"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => deletePizza(pizza.id)}
                           className="p-2 text-neutral-300 hover:text-red-600 transition-colors"
                         >
@@ -252,6 +318,146 @@ export function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {activeTab === 'settings' && settings && (
+          <div className="bg-white rounded-3xl border border-neutral-100 overflow-hidden shadow-sm p-8 space-y-6">
+            <div>
+              <h2 className="text-2xl font-black uppercase tracking-tighter mb-2">Site Settings</h2>
+              <p className="text-neutral-500 text-sm">Configure your website name, contact info, and social links.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Site Name</label>
+                <input
+                  type="text"
+                  value={settingsForm.siteName}
+                  onChange={(e) => setSettingsForm({...settingsForm, siteName: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Tagline</label>
+                <input
+                  type="text"
+                  value={settingsForm.tagline}
+                  onChange={(e) => setSettingsForm({...settingsForm, tagline: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Phone 1</label>
+                <input
+                  type="text"
+                  value={settingsForm.phone1}
+                  onChange={(e) => setSettingsForm({...settingsForm, phone1: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Phone 2</label>
+                <input
+                  type="text"
+                  value={settingsForm.phone2}
+                  onChange={(e) => setSettingsForm({...settingsForm, phone2: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Shop Address</label>
+              <textarea
+                value={settingsForm.address}
+                onChange={(e) => setSettingsForm({...settingsForm, address: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium h-20 resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Google Maps Embed URL</label>
+              <input
+                type="text"
+                value={settingsForm.locationUrl}
+                onChange={(e) => setSettingsForm({...settingsForm, locationUrl: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Shop Timing</label>
+              <input
+                type="text"
+                value={settingsForm.shopTiming}
+                onChange={(e) => setSettingsForm({...settingsForm, shopTiming: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                placeholder="e.g. 3 PM – 3 AM"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">WhatsApp Number (without +)</label>
+              <input
+                type="text"
+                value={settingsForm.whatsapp}
+                onChange={(e) => setSettingsForm({...settingsForm, whatsapp: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                placeholder="e.g. 923060022771"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Facebook URL</label>
+                <input
+                  type="text"
+                  value={settingsForm.facebook}
+                  onChange={(e) => setSettingsForm({...settingsForm, facebook: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Instagram URL</label>
+                <input
+                  type="text"
+                  value={settingsForm.instagram}
+                  onChange={(e) => setSettingsForm({...settingsForm, instagram: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">TikTok URL</label>
+                <input
+                  type="text"
+                  value={settingsForm.tiktok}
+                  onChange={(e) => setSettingsForm({...settingsForm, tiktok: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Site Description</label>
+              <textarea
+                value={settingsForm.description}
+                onChange={(e) => setSettingsForm({...settingsForm, description: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium h-24 resize-none"
+              />
+            </div>
+
+            <div className="pt-4">
+              <button
+                onClick={saveSettings}
+                className="bg-neutral-900 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors"
+              >
+                Save Settings
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -268,8 +474,8 @@ export function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Pizza Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -279,7 +485,7 @@ export function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Category</label>
-                  <select 
+                  <select
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-orange-500 outline-none text-sm font-medium"
@@ -292,7 +498,7 @@ export function AdminDashboard() {
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Description</label>
-                <textarea 
+                <textarea
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -303,8 +509,8 @@ export function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Price (Rs)</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
@@ -314,8 +520,8 @@ export function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Image URL</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={formData.image}
                     onChange={(e) => setFormData({...formData, image: e.target.value})}
@@ -325,13 +531,13 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="pt-4 flex gap-4">
-                <button 
+                <button
                   type="submit"
                   className="flex-1 bg-neutral-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors shadow-lg shadow-neutral-900/10"
                 >
                   {editingPizza ? 'Save Changes' : 'Create Item'}
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-8 bg-neutral-100 text-neutral-500 py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-neutral-200 transition-colors"

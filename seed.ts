@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
 
 const prisma = new PrismaClient();
 
@@ -133,6 +134,13 @@ async function main() {
   for (const pizza of pizzas) {
     await prisma.product.create({ data: pizza });
   }
+
+  // Create default settings
+  await prisma.settings.upsert({
+    where: { id: 'site-settings' },
+    update: {},
+    create: { id: 'site-settings' }
+  });
 
   console.log('Seed data created successfully!');
 }

@@ -46,7 +46,7 @@ export function AdminLogin() {
           <p className="text-neutral-500 text-sm mt-1">Manage De Pizza Town's operations</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-white p-8 rounded-[2rem] border border-neutral-100 shadow-sm space-y-6">
+        <form onSubmit={handleLogin} className="bg-white p-8 rounded-4xl border border-neutral-100 shadow-sm space-y-6">
           {error && <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg mb-4">{error}</div>}
           
           <div className="space-y-2">
