@@ -23,15 +23,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       let settings = await prisma.settings.findUnique({
         where: { id: 'site-settings' }
       });
-      
+
       if (!settings) {
         settings = await prisma.settings.create({
           data: defaultSettings
         });
       }
-      
+
       return res.status(200).json(settings);
     } catch (error) {
+      console.error('Settings GET error:', error);
       return res.status(500).json({ error: 'Failed to fetch settings' });
     }
   }
@@ -46,6 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return res.status(200).json(settings);
     } catch (error) {
+      console.error('Settings PUT error:', error);
       return res.status(500).json({ error: 'Failed to update settings' });
     }
   }
