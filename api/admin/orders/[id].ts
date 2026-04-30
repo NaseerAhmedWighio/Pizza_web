@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { prisma } from '../../../lib/db';
+import { prisma } from '@/lib/db';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
