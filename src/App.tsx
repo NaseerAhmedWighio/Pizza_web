@@ -85,6 +85,7 @@ export default function App() {
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            {/* routes */}
           </Routes>
         </main>
         <Footer />
