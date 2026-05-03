@@ -23,8 +23,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       where: { id: id as string },
       data: { status }
     });
-    res.status(200).json(order);
+    return res.status(200).json(order);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update order' });
+    console.error('Error updating order:', error);
+    return res.status(500).json({ error: 'Failed to update order', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
